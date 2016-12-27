@@ -11,7 +11,7 @@ Requirements:
 2. Syslog.
 
 
-Congiguring SSH
+Congiguring SSH:
 ===============
 
 First place disable root login by password:
@@ -25,7 +25,7 @@ Next, you should limit the number of users who have ssh access:
 These settings you need to change or add in the config file ssh */etc/ssh/sshd_config* and than restart the sshd daemon.
 
 
-Installation
+Installation:
 ============
 
 Place the script in the directory */root/bin/deny-hosts*. Create directory:
@@ -49,7 +49,7 @@ In */etc/hosts.deny* add this line:
     sshd : /etc/hosts.sshd.deny
     
 
-Congiguring Syslog
+Configuring Syslog:
 ==================
 
 The interaction between syslog and our program organized through named pipes. Create a channel:
@@ -66,3 +66,9 @@ Usage:
 =====
 
 You can run the script manually, but better to use Init Script *rc.deny-hosts*
+
+
+Additionally:
+============
+
+The [article](https://shpargalki.org.ua/184/zashchita-ssh-ot-brutforsa-blokirovanie-ip-pri-podbore-parolei) in my blog.
