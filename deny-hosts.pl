@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+# test
+
 use Sys::Syslog;
 
 $from = "admin\@myserver.com";
