@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# deny-hosts.pl initialization script.
+# deny-hosts.pl initialization script
 #
 
 killall deny-hosts.pl
