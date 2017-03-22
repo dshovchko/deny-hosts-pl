@@ -83,7 +83,7 @@ sub smtp_send {
     my $body = $_[0];
     
     my $time = time();
-    my ($sec,my $min,my $hour,my $mday,my $mon,my $year,my $wday,my $yday,my $isdst) = localtime($time);
+    (my $sec,my $min,my $hour,my $mday,my $mon,my $year,my $wday,my $yday,my $isdst) = localtime($time);
     my $now = sprintf("%04d-%02d-%02d %02d:%02d:%02d ", ($year+1900), ($mon+1), $mday, $hour, $min, $sec);
     
     if (open (SENDMAIL, "|".$CFG::CFG{'mail'}{'mailer'})) {
