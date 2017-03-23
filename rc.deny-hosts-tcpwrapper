@@ -4,4 +4,5 @@
 #
 
 killall deny-hosts-tcpwrapper.pl
-/root/bin/deny-hosts/deny-hosts-tcpwrapper.pl &
+cd /root/bin/deny-hosts
+./deny-hosts-tcpwrapper.pl &
