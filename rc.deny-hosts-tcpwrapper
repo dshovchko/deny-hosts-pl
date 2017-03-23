@@ -1,7 +1,7 @@
 #!/bin/sh
 #
-# deny-hosts.pl initialization script.
+# deny-hosts-tcpwrapper.pl initialization script.
 #
 
-killall deny-hosts.pl
-/root/bin/deny-hosts/deny-hosts.pl &
+killall deny-hosts-tcpwrapper.pl
+/root/bin/deny-hosts/deny-hosts-tcpwrapper.pl &
