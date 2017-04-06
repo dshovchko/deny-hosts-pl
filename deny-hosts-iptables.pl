@@ -2,18 +2,14 @@
 
 use Sys::Syslog;
 
-#iptables -A INPUT -p tcp -s 58.218.199.199 --dport 22 -j DROP
-#iptables -D INPUT -s 58.218.199.199 -j DROP
-#iptables -L INPUT -n -v
-
-$iptables = "/usr/sbin/iptables -%1s INPUT -p tcp -s %s --dport 22 -j DROP";
+$iptables = "iptables -%1s INPUT -p tcp -s %s --dport 22 -j DROP";
 
 %guessing;
 %banned;
 %iptables;
 
-$next_check = 0;
 $now = time();
+$next_check = $now + 9999999;
 
 # Get our configuration information
 if (my $err = ReadCfg('deny-hosts.cfg')) {
@@ -95,18 +91,24 @@ sub set_next_check {
 sub iptables_add {
     my $ip = $_[0];
     
-    my $cmd = sprintf($iptables, 'A', $ip);
-    syslog(LOG_INFO, $cmd);
-    system($cmd);
-    my $until = time() + $CFG::CFG{'ban_interval'} * ($guessing{$ip} - $CFG::CFG{'maxretry'});
-    $banned{$ip} = {
-	'until' => $until,
-	'pkts' => 0,
-    };
-    set_next_check($until);
-    syslog(LOG_INFO, "set next check: ".$next_check);
-    smtp_send('IP denied', $ip);
-    syslog(LOG_INFO, "IP denied: $ip");
+    iptables_parse();
+    if (!exists($iptables{$ip})) {
+	my $cmd = sprintf($iptables, 'A', $ip);
+	syslog(LOG_INFO, $cmd);
+	system($cmd);
+	my $until = time() + $CFG::CFG{'ban_interval'} * ($guessing{$ip} - $CFG::CFG{'maxretry'});
+	$banned{$ip} = {
+	    'until' => $until,
+	    'pkts' => 0,
+	};
+	set_next_check($until);
+	syslog(LOG_INFO, "set next check: ".$next_check);
+	smtp_send('IP denied', $ip);
+	syslog(LOG_INFO, "IP denied: $ip");
+    }
+    else {
+	syslog(LOG_INFO, "IP already denied: $ip");
+    }
 }
 
 sub iptables_remove {
@@ -122,7 +124,7 @@ sub iptables_remove {
 
 sub iptables_parse {
 
-    my @ipt_lines = `/usr/sbin/iptables -L INPUT -n -v`;
+    my @ipt_lines = `iptables -L INPUT -n -v`;
     my $found_chain  = 0;
     
     %iptables = ();
