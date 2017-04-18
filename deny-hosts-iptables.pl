@@ -193,7 +193,6 @@ sub iptables_check() {
 
     iptables_parse();
     syslog(LOG_INFO, "iptables check");
-    smtp_send('iptables check', $iptables{'raw'});
     
     $now = time();
     foreach $ip (keys %banned) {
@@ -226,6 +225,8 @@ sub iptables_check() {
 sub smtp_send {
     my $subject = $_[0];
     my $body = $_[1];
+    
+    return if ($CFG::CFG{'mail'}{'dontmail'});
     
     my $time = time();
     (my $sec,my $min,my $hour,my $mday,my $mon,my $year,my $wday,my $yday,my $isdst) = localtime($time);

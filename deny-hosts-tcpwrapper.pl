@@ -15,7 +15,7 @@ openlog("deny-hosts", "ndelay,pid", "local0");
 open (FIFO, $CFG::CFG{'channel'});
 
 syslog(LOG_INFO, "started");
-smtp_send("started");
+smtp_send("deny-hosts-tcpwrapper", "started");
 
 while (1) {
     while (<FIFO>) {
@@ -32,8 +32,8 @@ while (1) {
 			open (BL, '>>/etc/hosts.sshd.deny');
 			print BL $key,"\n";
 			close(BL);
-			smtp_send($key);
-			syslog(LOG_INFO, "IP banned: $key");
+			smtp_send('IP denied', $key);
+			syslog(LOG_INFO, "IP denied: $key");
 		    }
 		    delete($ban{$key});
 		    $banned{$key} = 1;
@@ -46,6 +46,7 @@ while (1) {
 }
 
 syslog(LOG_INFO, "exited");
+smtp_send("deny-hosts-tcpwrapper", "exited");
 
 close (FIFO);
 closelog();
@@ -78,9 +79,11 @@ sub ReadCfg
     return ($err);
 }
 
-
 sub smtp_send {
-    my $body = $_[0];
+    my $subject = $_[0];
+    my $body = $_[1];
+    
+    return if ($CFG::CFG{'mail'}{'dontmail'});
     
     my $time = time();
     (my $sec,my $min,my $hour,my $mday,my $mon,my $year,my $wday,my $yday,my $isdst) = localtime($time);
@@ -89,7 +92,7 @@ sub smtp_send {
     if (open (SENDMAIL, "|".$CFG::CFG{'mail'}{'mailer'})) {
         print SENDMAIL "From: ".$CFG::CFG{'mail'}{'from'}."\n";
         print SENDMAIL "To: ".$CFG::CFG{'mail'}{'to'}."\n";
-        print SENDMAIL "Subject: IP banned $now\n\n";
+        print SENDMAIL "Subject: $subject $now\n\n";
         print SENDMAIL "$body";
         close (SENDMAIL);
     }
