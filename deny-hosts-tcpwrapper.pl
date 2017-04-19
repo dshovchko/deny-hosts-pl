@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+use File::Pid;
 use Sys::Syslog;
 
 %ban;
@@ -13,6 +14,15 @@ if (my $err = ReadCfg('deny-hosts.cfg')) {
 
 openlog("deny-hosts", "ndelay,pid", "local0");
 open (FIFO, $CFG::CFG{'channel'});
+
+my $FPID = File::Pid->new({file => $CFG::CFG{'pid_file'}});
+$FPID->write;
+if ($$ != $FPID->running) {
+    syslog(LOG_INFO, "deny-hosts already runnin");
+    smtp_send("deny-hosts-tcpwrapper", "already running");
+    print(STDERR "\n", "deny-hosts already running", "\n");
+    exit(1);
+}
 
 syslog(LOG_INFO, "started");
 smtp_send("deny-hosts-tcpwrapper", "started");
@@ -50,6 +60,9 @@ smtp_send("deny-hosts-tcpwrapper", "exited");
 
 close (FIFO);
 closelog();
+
+$FPID->remove;
+exit;
 
 #   Read a configuration file
 #   The arg can be a relative or full path, or
