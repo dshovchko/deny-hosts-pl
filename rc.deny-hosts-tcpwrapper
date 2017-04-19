@@ -3,6 +3,66 @@
 # deny-hosts-tcpwrapper.pl initialization script.
 #
 
-killall deny-hosts-tcpwrapper.pl
-cd /root/bin/deny-hosts
-./deny-hosts-tcpwrapper.pl &
+DIR=/root/bin/deny-hosts
+BIN=./deny-hosts-tcpwrapper.pl
+PIDFILE=/var/run/deny-hosts.pid
+
+dh_start() {
+    if [ -f $PIDFILE ]
+    then
+	PID=$(cat $PIDFILE)
+	ps -p $PID > /dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+    	    echo "Process deny-hosts already running"
+    	    exit 1
+    	else
+    	    rm $PIDFILE
+	fi
+    fi
+    
+    echo "Starting deny-hosts..."
+    if [ -d $DIR ];
+    then
+	cd $DIR
+	if [ -x $BIN ]; 
+	then
+	    $BIN &
+	fi
+    fi
+}
+
+dh_stop() {
+    echo "Shutdown deny-hosts gracefully..."
+    if [ -f $PIDFILE ]
+    then
+	PID=$(cat $PIDFILE)
+	ps -p $PID > /dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+	    kill -9 $(cat $PIDFILE)
+	fi
+	rm $PIDFILE
+    fi
+}
+
+dh_restart() {
+    dh_stop
+    sleep 1
+    dh_start
+}
+
+case "$1" in
+  start)
+    dh_start
+    ;;
+  stop)
+    dh_stop
+    ;;
+  restart)
+    dh_restart
+    ;;
+  *)
+  echo "usage: `basename $0` {start|stop|restart}"
+esac
+
