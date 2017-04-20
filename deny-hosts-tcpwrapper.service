@@ -1,0 +1,14 @@
+[Unit]
+Description=Deny hosts by tcpwrapper
+After=network.target syslog.service
+
+[Service]
+Type=forking
+PIDFile=/var/run/deny-hosts.pid
+ExecStart=/root/bin/deny-hosts/rc.deny-hosts-tcpwrapper start
+ExecStop=/root/bin/deny-hosts/rc.deny-hosts-tcpwrapper stop
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
