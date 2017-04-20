@@ -36,7 +36,7 @@ smtp_send("deny-hosts-iptables", "started");
 while (1) {
     while (<FIFO>) {
 	$str = $_;
-	if ($str=~/Failed password for invalid user .+ (.+) port/) {
+	if ($str=~/Failed \S+ for invalid user .+ (.+) port/) {
 	    if(!$guessing{$1}) {
 		$guessing{$1}=1;
 	    } else {
