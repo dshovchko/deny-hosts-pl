@@ -30,7 +30,7 @@ smtp_send("deny-hosts-tcpwrapper", "started");
 while (1) {
     while (<FIFO>) {
 	$str = $_;
-	if ($str=~/Failed password for invalid user .+ (.+) port/) {
+	if ($str=~/Failed \S+ for invalid user .+ (.+) port/) {
 	    if(!$ban{$1}) {
 		$ban{$1}=1;
 	    } else {
