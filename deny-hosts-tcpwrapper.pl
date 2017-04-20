@@ -18,7 +18,7 @@ open (FIFO, $CFG::CFG{'channel'});
 my $FPID = File::Pid->new({file => $CFG::CFG{'pid_file'}});
 $FPID->write;
 if ($$ != $FPID->running) {
-    syslog(LOG_INFO, "deny-hosts already runnin");
+    syslog(LOG_INFO, "deny-hosts already running");
     smtp_send("deny-hosts-tcpwrapper", "already running");
     print(STDERR "\n", "deny-hosts already running", "\n");
     exit(1);
