@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 use File::Pid;
+use Sys::Hostname;
 use Sys::Syslog;
 
 %ban;
@@ -19,7 +20,7 @@ my $FPID = File::Pid->new({file => $CFG::CFG{'pid_file'}});
 $FPID->write;
 if ($$ != $FPID->running) {
     syslog(LOG_INFO, "deny-hosts already running");
-    smtp_send("deny-hosts-tcpwrapper", "already running");
+    smtp_send("deny-hosts-tcpwrapper", "already running", 0);
     print(STDERR "\n", "deny-hosts already running", "\n");
     exit(1);
 }
@@ -101,8 +102,9 @@ sub smtp_send {
         $dontmail = 1;
     }
     
-    return if ($CFG::CFG{'mail'}{'dontmail'});
+    return if ($CFG::CFG{'mail'}{'dontmail'} && $dontmail);
     
+    $host = hostname;
     my $time = time();
     (my $sec,my $min,my $hour,my $mday,my $mon,my $year,my $wday,my $yday,my $isdst) = localtime($time);
     my $now = sprintf("%04d-%02d-%02d %02d:%02d:%02d ", ($year+1900), ($mon+1), $mday, $hour, $min, $sec);
@@ -110,7 +112,7 @@ sub smtp_send {
     if (open (SENDMAIL, "|".$CFG::CFG{'mail'}{'mailer'})) {
         print SENDMAIL "From: ".$CFG::CFG{'mail'}{'from'}."\n";
         print SENDMAIL "To: ".$CFG::CFG{'mail'}{'to'}."\n";
-        print SENDMAIL "Subject: $subject $now\n\n";
+        print SENDMAIL "Subject: $host $subject $now\n\n";
         print SENDMAIL "$body";
         close (SENDMAIL);
     }
