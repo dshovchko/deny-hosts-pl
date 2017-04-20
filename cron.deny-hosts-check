@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# deny-hosts cron watchdog script.
+#
+
+PIDFILE=$1
+BIN=$2
+
+if [ -f $PIDFILE ]
+then
+    PID=$(cat $PIDFILE)
+    ps -p $PID > /dev/null 2>&1
+    if [ $? -eq 0 ]
+    then
+        # present
+	exit 0
+    fi
+fi
+
+# absent
+$BIN restart
