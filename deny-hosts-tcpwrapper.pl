@@ -25,7 +25,7 @@ if ($$ != $FPID->running) {
 }
 
 syslog(LOG_INFO, "started");
-smtp_send("deny-hosts-tcpwrapper", "started");
+smtp_send("deny-hosts-tcpwrapper", "started", 0);
 
 while (1) {
     while (<FIFO>) {
@@ -95,6 +95,11 @@ sub ReadCfg
 sub smtp_send {
     my $subject = $_[0];
     my $body = $_[1];
+    my $dontmail = $_[2];
+    
+    if (!defined($dontmail)) {
+        $dontmail = 1;
+    }
     
     return if ($CFG::CFG{'mail'}{'dontmail'});
     

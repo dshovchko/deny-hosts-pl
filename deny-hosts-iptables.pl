@@ -31,7 +31,7 @@ if ($$ != $FPID->running) {
 }
 
 syslog(LOG_INFO, "started");
-smtp_send("deny-hosts-iptables", "started");
+smtp_send("deny-hosts-iptables", "started", 0);
 
 while (1) {
     while (<FIFO>) {
@@ -238,8 +238,13 @@ sub iptables_check() {
 sub smtp_send {
     my $subject = $_[0];
     my $body = $_[1];
+    my $dontmail = $_[2];
     
-    return if ($CFG::CFG{'mail'}{'dontmail'});
+    if (!defined($dontmail)) { 
+	$dontmail = 1;
+    }
+    
+    return if ($CFG::CFG{'mail'}{'dontmail'} && $dontmail);
     
     my $time = time();
     (my $sec,my $min,my $hour,my $mday,my $mon,my $year,my $wday,my $yday,my $isdst) = localtime($time);
