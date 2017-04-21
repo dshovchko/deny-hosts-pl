@@ -52,6 +52,13 @@ while (1) {
 	$now = time();
 	if ($now > $next_check) {
 	    iptables_check();
+	    
+	    # set next check time
+	    $next_check = $now + 9999999;
+	    foreach $ip (keys %banned) {
+		set_next_check($banned{$ip}{'until'});
+	    }
+	    log_next_check();
 	}
     }
     smtp_send("syslog restarted");
@@ -102,13 +109,20 @@ sub set_next_check {
     }
 }
 
+sub log_next_check {
+    (my $sec,my $min,my $hour,my $mday,my $mon,my $year,my $wday,my $yday,my $isdst) = localtime($next_check);
+    my $timestr = sprintf("%04d-%02d-%02d %02d:%02d", ($year+1900), ($mon+1), $mday, $hour, $min);
+    
+    syslog(LOG_INFO, "next check will be after ".$timestr);
+}
+
 sub iptables_add {
     my $ip = $_[0];
     
     iptables_parse();
     if (!exists($iptables{$ip})) {
 	my $cmd = sprintf($iptables, 'A', $ip);
-	syslog(LOG_INFO, $cmd);
+	syslog(LOG_INFO, "exec: $cmd");
 	system($cmd);
 	my $until = time() + $CFG::CFG{'ban_interval'} * ($guessing{$ip} - $CFG::CFG{'maxretry'});
 	$banned{$ip} = {
@@ -116,7 +130,7 @@ sub iptables_add {
 	    'pkts' => 0,
 	};
 	set_next_check($until);
-	syslog(LOG_INFO, "set next check: ".$next_check);
+	log_next_check($until);
 	smtp_send('IP denied', $ip);
 	syslog(LOG_INFO, "IP denied: $ip");
     }
@@ -129,7 +143,7 @@ sub iptables_remove {
     my $ip = $_[0];
     
     my $cmd = sprintf($iptables, 'D', $ip);
-    syslog(LOG_INFO, $cmd);
+    syslog(LOG_INFO, "exec: $cmd");
     system($cmd);
     delete($banned{$ip});
     smtp_send('IP allowed', $ip);
@@ -226,12 +240,6 @@ sub iptables_check() {
         }
     }
 
-    # set next check time
-    $next_check = $now + 9999999;
-    foreach $ip (keys %banned) {
-	set_next_check($banned{$ip}{'until'});
-    }
-    syslog(LOG_INFO, "set next check: ".$next_check);
     # clear
     %iptables = ();
 }
